@@ -40,4 +40,22 @@ public class UserService implements UserDetailsService {
 		}
 		return user;
 	}
+
+	protected User authenticated() {
+		try {
+			Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+			Jwt jwtPrincipal = (Jwt) authentication.getPrincipal();
+			String username = jwtPrincipal.getClaim("username");
+			return repository.findByEmail(username).get();
+		}
+		catch (Exception e) {
+			throw new UsernameNotFoundException("Invalid user");
+		}
+	}
+
+	@Transactional(readOnly = true)
+	public UserDTO getMe() {
+		User entity = authenticated();
+		return new UserDTO(entity);
+	}
 }
